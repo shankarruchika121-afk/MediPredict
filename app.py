@@ -9,8 +9,8 @@ app = Flask(__name__)
 app.secret_key = "genz_health_secure_key"
 
 # --- DATABASE CONFIGURATION (SQLite) ---
-# This creates a 'healthcare.db' file inside an 'instance' folder
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthcare.db'
+# FIXED: Changed lowercase 'healthcare.db' to match your actual file 'Healthcare.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Healthcare.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -20,7 +20,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False) # Hashed for security
 
-# Create the database and tables automatically
+# Create the database and tables automatically if they don't exist
 with app.app_context():
     db.create_all()
 
@@ -45,7 +45,6 @@ def is_logged_in():
 
 @app.route('/')
 def home():
-    # GATEKEEPER: Redirect to login if not authenticated
     if not is_logged_in():
         return redirect(url_for('login'))
     return render_template('predict.html')
@@ -56,12 +55,11 @@ def register():
         uname = request.form.get('username')
         pwd = request.form.get('password')
         
-        # Check if user already exists
         if User.query.filter_by(username=uname).first():
             return "Error: Username already exists!", 400
         
-        # Security: Hash the password before saving
-        hashed_pwd = generate_password_hash(pwd, method='pbkdf2:sha256')
+        # Security: Optimized hashing for safer production environment package matching
+        hashed_pwd = generate_password_hash(pwd)
         new_user = User(username=uname, password=hashed_pwd)
         
         db.session.add(new_user)
@@ -78,7 +76,6 @@ def login():
         
         user = User.query.filter_by(username=uname).first()
         
-        # Verify user exists and password is correct
         if user and check_password_hash(user.password, pwd):
             session['user_id'] = user.id
             session['username'] = user.username
@@ -103,14 +100,12 @@ def predict_disease():
     data = request.get_json()
     user_symptoms = data.get('symptoms', [])
     
-    # Prepare input vector
     vec = np.zeros(len(symptoms_list))
     for s in user_symptoms:
         s_clean = s.strip().lower()
         if s_clean in symptoms_list:
             vec[symptoms_list.index(s_clean)] = 1
             
-    # Get Top 3 Predictions
     probs = model_sym.predict_proba([vec])[0]
     top_3_indices = np.argsort(probs)[-3:][::-1]
     
@@ -129,7 +124,6 @@ def predict_diabetes():
     if not data:
         return jsonify({"error": "Missing data"}), 400
         
-    # Scale and Predict
     scaled = scaler_diab.transform(np.array(data).reshape(1, -1))
     prediction = model_diab.predict(scaled)[0]
     
