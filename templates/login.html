@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit" class="btn-primary" style="width:100%; border:none; margin-top:20px;">Login</button>
+        </form>
+        <p>New user? <a href="/register">Register here</a></p>
+    </div>
+</body>
+</html>

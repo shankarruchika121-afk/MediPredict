@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI HealthCare | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .page-section { display: none; min-height: 80vh; animation: fadeIn 0.4s ease; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo"> AI HealthCare</div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" onclick="nav('home')">Home</a>
+            <a href="javascript:void(0)" onclick="nav('predict')">Predict Disease</a>
+            <a href="javascript:void(0)" onclick="nav('diabetes')">Diabetes Risk</a>
+            <a href="/logout" style="color: #ff4d4d; margin-left: 20px;">Logout</a>
+        </div>
+    </nav>
+
+    <div id="home-sec" class="page-section active">
+        <div class="hero">
+            <div class="hero-content">
+                <span class="badge">AI Health Assistant</span>
+                <h1>Tell Us What <br>You're Facing. <span>We Help You.</span></h1>
+                <p>Describe your concerns and get instant AI-powered analysis.</p>
+                <div class="hero-btns">
+                    <button class="btn-primary" onclick="nav('predict')">Describe Your Problem →</button>
+                    <button class="btn-outline" onclick="nav('diabetes')">Check Diabetes</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-img-container">
+                    <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80" alt="Health AI">
+                    <div class="stat-card accuracy"> <span>Your Health, Decoded by AI.</span></div>
+                    <div class="stat-card users"> <span>AI Care</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="predict-sec" class="page-section">
+        <div style="padding: 100px 0; max-width: 800px; margin: auto;">
+            <div class="auth-card">
+                <h2>Disease Predictor</h2>
+                <p>Enter symptoms separated by commas.</p>
+                <input type="text" id="symInput" placeholder="e.g. fever, cough, itching">
+                <button class="btn-primary" onclick="predictDisease()" style="width:100%; margin-top:20px;">Analyze</button>
+                <div id="res1" class="result-display">
+                    <h3>Top Predictions:</h3>
+                    <div id="list1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="diabetes-sec" class="page-section">
+        <div style="padding: 100px 0; max-width: 600px; margin: auto;">
+            <div class="auth-card">
+                <h2>Diabetes Risk Check</h2>
+                <p>Enter clinical vitals.</p>
+                <input type="number" id="gl" placeholder="Glucose Level">
+                <input type="number" id="bmi" placeholder="BMI">
+                <input type="number" id="age" placeholder="Age">
+                <button class="btn-primary" onclick="predictDiabetes()" style="width:100%; margin-top:20px;">Check Risk</button>
+                <div id="res2" class="result-display" style="text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function nav(id) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id + '-sec').classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        async function predictDisease() {
+            const syms = document.getElementById('symInput').value.split(',').map(s => s.trim());
+            const res = await fetch('/predict_disease', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({symptoms: syms})
+            });
+            const data = await res.json();
+            const list = document.getElementById('list1');
+            document.getElementById('res1').style.display = 'block';
+            list.innerHTML = '';
+            data.predictions.forEach(p => {
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+                    <span>${p.disease}</span> <b>${p.confidence}%</b></div>`;
+            });
+        }
+
+        async function predictDiabetes() {
+            const vals = [0, document.getElementById('gl').value, 70, 20, 80, document.getElementById('bmi').value, 0.5, document.getElementById('age').value];
+            const res = await fetch('/predict_diabetes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({clinical_data: vals.map(Number)})
+            });
+            const data = await res.json();
+            const box = document.getElementById('res2');
+            box.style.display = 'block';
+            box.innerHTML = `Assessment: <b style="color:${data.risk_score === 'High Risk' ? 'red' : 'green'}">${data.risk_score}</b>`;
+        }
+    </script>
+</body>
+</html>

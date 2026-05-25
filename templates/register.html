@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - AI HealthCare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><b> AI HealthCare</b></div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+        </div>
+    </nav>
+
+    <div class="auth-card">
+        <h2>Create Account</h2>
+        <p>Join our early diagnosis system</p>
+        <form action="/register" method="POST">
+            <input type="text" name="username" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email Address" required>
+            <input type="password" name="password" placeholder="Create Password" required>
+            <button type="submit" class="btn-primary" style="width:100%; border:none; margin-top:20px; cursor:pointer;">Register Now</button>
+        </form>
+        <p style="margin-top:20px;">Already have an account? <a href="/login" style="color:var(--primary-teal);">Login here</a></p>
+    </div>
+</body>
+</html>
